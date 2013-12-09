@@ -162,11 +162,11 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
         var = 1;
         a = 1;
         if get(hOptionsPopUp,'Value') < 3 % sliderA = pot
-            var = 8;
+            var = potVals(2)-potVals(1);
             a = var*round((x-1)/var)+1;
         end
         if get(hOptionsPopUp,'Value') == 3 % sliderA = brightness
-            var = 25;
+            var = brightnessVals(2)-brightnessVals(1);
             a = var*round(x/var);
         end
 
@@ -187,10 +187,10 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
         var = 1;
         a = 1;
         if get(hOptionsPopUp,'Value') == 1 % sliderA = brightness
-            var = 25;
+            var = brightnessVals(2)-brightnessVals(1);
         end
         if get(hOptionsPopUp,'Value') > 1 % sliderA = number
-            var = 8;
+            var = numberVals(2)-numberVals(1);
         end
         
         % update values of slider and value label
@@ -209,30 +209,65 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
 %   Changes slider value and its labels based on category.
 % --------------------------------------------------------
     function setSliderAtoPot
-        set(hSliderA,'Value',1,...
-            'Min',1,'Max',121,...
-            'SliderStep',[0.067 0.067]);
+        
+        tmpMax      = max(potVals);
+        tmpMin      = min(potVals);
+        
+        tmpInterval = potVals(2) - potVals(1);
+        tmpRange    = tmpMax - tmpMin;
+        tmpStep     = tmpInterval / tmpRange;
+        
+        set(hSliderA,'Value',tmpMin,...
+            'Min',tmpMin,'Max',tmpMax,...
+            'SliderStep',[tmpStep tmpStep]);
         set(hSliderACategoryLabel,'String','Pot Value');
         set(hSliderAValueLabel,'String',num2str(get(hSliderA,'Value')));
     end
+
     function setSliderAtoBrightness
-        set(hSliderA,'Value',0,...
-            'Min',0,'Max',100,...
-            'SliderStep',[0.25 0.25]);
+        
+        tmpMax      = max(brightnessVals);
+        tmpMin      = min(brightnessVals);
+        
+        tmpInterval = brightnessVals(2)-brightnessVals(1);
+        tmpRange    = tmpMax - tmpMin;
+        tmpStep     = tmpInterval / tmpRange;
+        
+        set(hSliderA,'Value',tmpMin,...
+            'Min',tmpMin,'Max',tmpMax,...
+            'SliderStep',[tmpStep tmpStep]);
         set(hSliderACategoryLabel,'String','Brightness');
         set(hSliderAValueLabel,'String',num2str(get(hSliderA,'Value')));
     end
+
     function setSliderBtoBrightness
-        set(hSliderB,'Value',0,...
-            'Min',0,'Max',100,...
-            'SliderStep',[0.25 0.25]);
+        
+        tmpMax = max(brightnessVals);
+        tmpMin = min(brightnessVals);
+        
+        tmpInterval = brightnessVals(2)-brightnessVals(1);
+        tmpRange    = tmpMax - tmpMin;
+        tmpStep     = tmpInterval / tmpRange;
+        
+        set(hSliderB,'Value',tmpMin,...
+            'Min',tmpMin,'Max',tmpMax,...
+            'SliderStep',[tmpStep tmpStep]);
         set(hSliderBCategoryLabel,'String','Brightness');
         set(hSliderBValueLabel,'String',num2str(get(hSliderB,'Value')));
     end
+
     function setSliderBtoNumber
-        set(hSliderB,'Value',0,...
-            'Min',0,'Max',32,...
-            'SliderStep',[0.25 0.25]);
+        
+        tmpMax      = max(numberVals);
+        tmpMin      = min(numberVals);
+        
+        tmpInterval = numberVals(2) - numberVals(1);
+        tmpRange    = tmpMax - tmpMin;
+        tmpStep     = tmpInterval / tmpRange;
+        
+        set(hSliderB,'Value',tmpMin,...
+            'Min',tmpMin,'Max',tmpMax,...
+            'SliderStep',[tmpStep tmpStep]);
         set(hSliderBCategoryLabel,'String','Number');
         set(hSliderBValueLabel,'String',num2str(get(hSliderB,'Value')));
     end
@@ -267,8 +302,10 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
    
         % filter main array down depending on fixed values
         tmpArray = zeros(1,18);
+        
+        totalRows = length(audioData);
 
-        for n=1:400
+        for n=1:totalRows
 
             tmpRow = audioData(n,:);
 
@@ -308,7 +345,6 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
         ylim([0 300]);  % set y limits
         
     end
-end
 
 % --------------------------------------------------------
 % Data Set Callback

@@ -85,7 +85,7 @@ hSliderBValueLabel = uicontrol('Style','text',...
 % data choice popup
 %   allows user to select either low pot or full range data
 hDataSetPopUp = uicontrol('Style','popupmenu',...
-    'String',{'1-121','1-9'},...
+    'String',{'1-121','1-9','1-121 (63 Hz)'},...
     'Position',[480 480 100 20],...
     'Callback',@dataSetCallback);
 
@@ -360,6 +360,8 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
                 setUpAllPotNoSignal;
             case '1-9'
                 setUpLowPotNoSignal;
+            case '1-121 (63 Hz)'
+                setUpAllPot63HzSignal;
         end
     end
 
@@ -377,6 +379,12 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
     function setUpLowPotNoSignal
         audioData = csvread('pot1to9.csv');
         potVals = 1:9;
+        resetAllData;
+    end
+
+    function setUpAllPot63HzSignal
+        audioData = csvread('allPot63.csv');
+        potVals = 1:8:121;
         resetAllData;
     end
 

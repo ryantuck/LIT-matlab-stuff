@@ -121,17 +121,7 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
 % --------------------------------------------------------
     function paramSelectCallback(source,eventdata)
 
-        str = get(source, 'String');
-        val = get(source,'Value');
-        
-        switch str{val};
-            case 'Pot / Brightness'
-                potBrCallback;
-            case 'Pot / Number'
-                potNumCallback;
-            case 'Brightness / Number'
-                brNumCallback;
-        end
+        resetAllData;
     end
 
 % --------------------------------------------------------
@@ -321,6 +311,31 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
 end
 
 
+% --------------------------------------------------------
+% Reset all data.
+%   Changes sliders and graphs depending on current
+%   value of main fixed-parameter selection popup.
+% --------------------------------------------------------
+
+
+    function resetAllData
+        
+        str = get(hOptionsPopUp, 'String');
+        val = get(hOptionsPopUp,'Value');
+        
+        switch str{val};
+            case 'Pot / Brightness'
+                potBrCallback;
+            case 'Pot / Number'
+                potNumCallback;
+            case 'Brightness / Number'
+                brNumCallback;
+        end
+        
+    end
+
+
+end
 
 
 

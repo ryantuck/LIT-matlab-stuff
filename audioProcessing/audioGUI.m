@@ -310,6 +310,39 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
     end
 end
 
+% --------------------------------------------------------
+% Data Set Callback
+%   Changes general audio data set depending on user choice.
+% --------------------------------------------------------
+
+    function dataSetCallback(source,eventdata)
+        str = get(source, 'String');
+        val = get(source,'Value');
+        
+        switch str{val};
+            case '1-121'
+                setUpAllPotNoSignal;
+            case '1-9'
+                setUpLowPotNoSignal;
+        end
+    end
+
+% --------------------------------------------------------
+% Data set setups.
+%   Changes general audio data set depending on pop up menu choice.
+% --------------------------------------------------------
+
+    function setUpAllPotNoSignal
+        audioData = csvread('potNumBrightnessTesting1.csv');
+        potVals = 1:8:121;
+        resetAllData;
+    end
+
+    function setUpLowPotNoSignal
+        audioData = csvread('pot1to9.csv');
+        potVals = 1:9;
+        resetAllData;
+    end
 
 % --------------------------------------------------------
 % Reset all data.

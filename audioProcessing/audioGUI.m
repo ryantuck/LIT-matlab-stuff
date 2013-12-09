@@ -20,10 +20,10 @@ audioData = csvread('potNumBrightnessTesting1.csv');
 % 17 - band 6 stdev
 
 % define default values
-bands           = [0:6];
-potVals         = [1:8:121];
-brightnessVals  = [0:25:100];
-numberVals      = [0:8:32];
+bands           = 0:6;
+potVals         = 1:8:121;
+brightnessVals  = 0:25:100;
+numberVals      = 0:8:32;
 
 % create and then hide the GUI as it is being constructed
 f = figure('Visible','off','Position',[360,500,450,285]);

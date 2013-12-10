@@ -6,10 +6,8 @@ function audioGUI
 % Setup
 % ================================================================
 
-% read in global audio data file
-audioData = csvread('potNumBrightnessTesting1.csv');
-
-
+% create placeholder for audioData
+audioData = {0};
 
 % Column #s in audioData
 % ----------------------
@@ -27,16 +25,39 @@ potVals         = 1:8:121;
 brightnessVals  = 0:25:100;
 numberVals      = 0:8:32;
 
-
-frequencies = [63,160,400,1000,2500,6250];
+frequencies = [63,160,400,1000,2500,6250];  % for driving signals
 voltages    = [2000,1000,200];
 
+% for different ways data can be plotted
 displayOptions = {'spectrum','variable'};
 
-variableParameterName = 'Number';
+% different combos of fixed parameters
+fixedOptions = {...
+    'Pot / Brightness',...
+    'Pot / Number',...
+    'Brightness / Number'};
 
-yAxisHeight = 1000;
+% options for signal
+signalOptions = {'None','Sine Wave'};
 
+% by default, pot and brightness are fixed.
+% this variable will be the x-axis label.
+variableParameterName = 'Number';   
+
+yAxisHeight = 1000; % default value
+
+% options for y-axis heights
+yHeights = {...
+    '200',...
+    '400',...
+    '600',...
+    '800',...
+    '1000'};
+
+% options for pot range
+potRangeOptions = {'1-121','1-9'};
+
+% initially set audioData to silence data (default setting)
 createSilenceAudioArray;
 
 % create and then hide the GUI as it is being constructed
@@ -46,113 +67,136 @@ f = figure('Visible','off','Position',[360,500,450,285]);
 % Create ui controls
 % ================================================================
 
-% options pop-up
+% fixed parameters popup
 %   chooses which two parameters we keep fixed
-hOptionsPopUp = uicontrol('Style','popupmenu',...
-    'String',{'Pot / Brightness','Pot / Number','Brightness / Number'},...
+hFixedParametersPopUp = uicontrol(...
+    'Style','popupmenu',...
+    'String',fixedOptions,...
     'Position',[220 600 200 20],...
     'Callback',@paramSelectCallback);
-% options label
-%   instructs user what to do
-uicontrol('Style','text',...
-    'String','Fixed Parameters: ',...
-    'Position',[20 600 200 20]);
 
 % sliders
 %   control values of 2 fixed parameters
-hSliderA = uicontrol('Style','slider',...
+hSliderA = uicontrol(...
+    'Style','slider',...
     'Max',100,'Min',0,...
     'SliderStep',[0.25 0.25],...
     'Position',[220 560 200 20],...
     'Callback',@sliderACallback);
-hSliderB = uicontrol('Style','slider',...
+
+hSliderB = uicontrol(...
+    'Style','slider',...
     'Max',121,'Min',1,...
     'Value',1,...
     'SliderStep',[0.067 0.067],...
     'Position',[220 520 200 20],...
     'Callback',@sliderBCallback);
 
-% category labels
-%   display parameter name associated with slider
-hSliderACategoryLabel = uicontrol('Style','text',...
-    'String','Pot value',...
-    'Position',[20 560 100 20]);
-hSliderBCategoryLabel = uicontrol('Style','text',...
-    'String','Brightness',...
-    'Position',[20 520 100 20]);
-
-% value labels
-%   display parameter value associated with slider
-hSliderAValueLabel = uicontrol('Style','text',...
-    'String','1',...
-    'Position',[120 560 100 20]);
-hSliderBValueLabel = uicontrol('Style','text',...
-    'String','0',...
-    'Position',[120 520 100 20]);
-
 % data choice popup
 %   allows user to select either low pot or full range data
-hDataSetPopUp = uicontrol('Style','popupmenu',...
-    'String',{'None','Sine Wave'},...
+hSignalPopUp = uicontrol(...
+    'Style','popupmenu',...
+    'String',signalOptions,...
     'Position',[220 480 200 20],...
-    'Callback',@dataSetCallback);
+    'Callback',@signalCallback);
 
 % y axis height popup
 %   allows user to define y axis height
-uicontrol('Style','popupmenu',...
-    'String',{'200','400','600','800','1000'},...
+uicontrol(...
+    'Style','popupmenu',...
+    'String',yHeights,...
     'Value',5,... % sets default to 1000
     'Position',[680 520 200 20],...
     'Callback',@yAxisCallback);
 
 % data display popup
 %   allows user to select how data should be displayed
-hDataDisplayPopUp = uicontrol('Style','popupmenu',...
+hDataDisplayPopUp = uicontrol(...
+    'Style','popupmenu',...
     'String',displayOptions,...
     'Position',[680 480 200 20],...
     'Callback',@displayOptionsCallback);
 
-uicontrol('Style','text',...        % driving signal label
-    'String','Driving Signal?',...
-    'Position',[20 480 200 20]);
-
-uicontrol('Style','text',...        % y-axis label
-    'String','Y-Axis Height:',...
-    'Position',[480 520 200 20]);
-
-uicontrol('Style','text',...        % x-axis label
-    'String','X-Axis Data:',...
-    'Position',[480 480 200 20]);
-
 % driving signal popups
 %   lets the user choose driving frequency and amplitude
-
-hFrequencyPopUp = uicontrol('Style','popupmenu',...
+hFrequencyPopUp = uicontrol(...
+    'Style','popupmenu',...
     'String',frequencies,...
     'Position',[680 600 200 20],...
     'Callback',@frequencyCallback);
 
-hAmplitudePopUp = uicontrol('Style','popupmenu',...
+hAmplitudePopUp = uicontrol(...
+    'Style','popupmenu',...
     'String',voltages,...
     'Position',[680 560 200 20],...
     'Callback',@frequencyCallback);
 
-hFrequencyLabel = uicontrol('Style','text',...
-    'String','Signal Frequency (Hz):',...
-    'Position',[480 600 200 20]);
-
-hAmplitudeLabel = uicontrol('Style','text',...
-    'String','Signal Amplitude (mV):',...
-    'Position',[480 560 200 20]);
-
-hPotRangePopUp = uicontrol('Style','popupmenu',...
-    'String',{'1-121','1-9'},...
+% pot range popup
+%   if silence data selected, lets user choose range of pot values
+hPotRangePopUp = uicontrol(...
+    'Style','popupmenu',...
+    'String',potRangeOptions,...
     'Position',[680 600 200 20],...
     'Callback',@potRangeCallback);
 
-hPotRangeLabel = uicontrol('Style','text',...
+% labels
+uicontrol(...   % fixed parameters label
+    'Style','text',...            
+    'String','Fixed Parameters: ',...
+    'Position',[20 600 200 20]);
+
+hPotRangeLabel = uicontrol(...
+    'Style','text',...
     'String','Pot Range:',...
     'Position',[480,600,200,20]);
+
+hFrequencyLabel = uicontrol(...
+    'Style','text',...
+    'String','Signal Frequency (Hz):',...
+    'Position',[480 600 200 20]);
+
+hAmplitudeLabel = uicontrol(...
+    'Style','text',...
+    'String','Signal Amplitude (mV):',...
+    'Position',[480 560 200 20]);
+
+uicontrol(...   % driving signal label
+    'Style','text',...        
+    'String','Driving Signal?',...
+    'Position',[20 480 200 20]);
+
+uicontrol(...   % y-axis label
+    'Style','text',...        
+    'String','Y-Axis Height:',...
+    'Position',[480 520 200 20]);
+
+uicontrol(...   % x-axis label
+    'Style','text',...        
+    'String','X-Axis Data:',...
+    'Position',[480 480 200 20]);
+
+% slider category labels
+%   display parameter name associated with slider
+hSliderACategoryLabel = uicontrol(...
+    'Style','text',...
+    'String','Pot value',...
+    'Position',[20 560 100 20]);
+
+hSliderBCategoryLabel = uicontrol(...
+    'Style','text',...
+    'String','Brightness',...
+    'Position',[20 520 100 20]);
+
+% slider value labels
+%   display parameter value associated with slider
+hSliderAValueLabel = uicontrol(...
+    'Style','text',...
+    'String','1',...
+    'Position',[120 560 100 20]);
+hSliderBValueLabel = uicontrol(...
+    'Style','text',...
+    'String','0',...
+    'Position',[120 520 100 20]);
     
 
 % ================================================================
@@ -165,13 +209,13 @@ axes('Units','Pixels','Position',[50 50 800 400]);
 % initially set up values and graph
 potBrCallback;
 
+% hide driving signal pop ups because silence data is default
 hideSignalPopUps;
 
 % turn on figure display
 set(f,'Visible','on','Position',[100 100 1000 800]);
 
 % ================================================================
-
 
 
 
@@ -189,6 +233,27 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
 % --------------------------------------------------------
     function paramSelectCallback(~,~)
         resetAllData;
+    end
+
+% --------------------------------------------------------
+% Reset all data.
+%   Changes sliders and graphs depending on current
+%   value of main fixed-parameter selection popup.
+% --------------------------------------------------------
+    function resetAllData
+        
+        str = get(hFixedParametersPopUp, 'String');
+        val = get(hFixedParametersPopUp,'Value');
+        
+        switch str{val};
+            case 'Pot / Brightness'
+                potBrCallback;
+            case 'Pot / Number'
+                potNumCallback;
+            case 'Brightness / Number'
+                brNumCallback;
+        end
+        
     end
 
 % --------------------------------------------------------
@@ -225,16 +290,19 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
 %   updates the slider's value label, and re-draws the graph.
 % --------------------------------------------------------
     function sliderACallback(~,~)
+        
         % get value
         x = get(hSliderA,'Value');
         
         % check state of main pop-up and change value accordingly
         a = 1;
-        if get(hOptionsPopUp,'Value') < 3 % sliderA = pot
+        if get(hFixedParametersPopUp,'Value') < 3 
+            % sliderA = pot
             var = potVals(2)-potVals(1);
             a = var*round((x-1)/var)+1;
         end
-        if get(hOptionsPopUp,'Value') == 3 % sliderA = brightness
+        if get(hFixedParametersPopUp,'Value') == 3 
+            % sliderA = brightness
             var = brightnessVals(2)-brightnessVals(1);
             a = var*round(x/var);
         end
@@ -249,16 +317,19 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
     end
 
     function sliderBCallback(~,~)
+        
         % get value
         x = get(hSliderB,'Value');
         
         % check state of main pop-up and change value accordingly
         var = 1;
         
-        if get(hOptionsPopUp,'Value') == 1 % sliderA = brightness
+        if get(hFixedParametersPopUp,'Value') == 1 
+            % sliderA = brightness
             var = brightnessVals(2)-brightnessVals(1);
         end
-        if get(hOptionsPopUp,'Value') > 1 % sliderA = number
+        if get(hFixedParametersPopUp,'Value') > 1 
+            % sliderA = number
             var = numberVals(2)-numberVals(1);
         end
         
@@ -279,6 +350,7 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
 % --------------------------------------------------------
     function setSliderAtoPot
         
+        % get max, min and step values for slider
         tmpMax      = max(potVals);
         tmpMin      = min(potVals);
         
@@ -286,15 +358,20 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
         tmpRange    = tmpMax - tmpMin;
         tmpStep     = tmpInterval / tmpRange;
         
-        set(hSliderA,'Value',tmpMin,...
+        % set slider's values
+        set(hSliderA,...
+            'Value',tmpMin,...
             'Min',tmpMin,'Max',tmpMax,...
             'SliderStep',[tmpStep tmpStep]);
+        
+        % set labels accordingly
         set(hSliderACategoryLabel,'String','Pot Value');
         set(hSliderAValueLabel,'String',num2str(get(hSliderA,'Value')));
     end
 
     function setSliderAtoBrightness
         
+        % get max, min and step values for slider
         tmpMax      = max(brightnessVals);
         tmpMin      = min(brightnessVals);
         
@@ -302,15 +379,20 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
         tmpRange    = tmpMax - tmpMin;
         tmpStep     = tmpInterval / tmpRange;
         
-        set(hSliderA,'Value',tmpMin,...
+        % set slider's values
+        set(hSliderA,...
+            'Value',tmpMin,...
             'Min',tmpMin,'Max',tmpMax,...
             'SliderStep',[tmpStep tmpStep]);
+        
+        % set labels accordingly
         set(hSliderACategoryLabel,'String','Brightness');
         set(hSliderAValueLabel,'String',num2str(get(hSliderA,'Value')));
     end
 
     function setSliderBtoBrightness
         
+        % get max, min and step values for slider
         tmpMax = max(brightnessVals);
         tmpMin = min(brightnessVals);
         
@@ -318,15 +400,20 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
         tmpRange    = tmpMax - tmpMin;
         tmpStep     = tmpInterval / tmpRange;
         
-        set(hSliderB,'Value',tmpMin,...
+        % set slider's values
+        set(hSliderB,...
+            'Value',tmpMin,...
             'Min',tmpMin,'Max',tmpMax,...
             'SliderStep',[tmpStep tmpStep]);
+        
+        % set labels accordingly
         set(hSliderBCategoryLabel,'String','Brightness');
         set(hSliderBValueLabel,'String',num2str(get(hSliderB,'Value')));
     end
 
     function setSliderBtoNumber
         
+        % get max, min and step values for slider
         tmpMax      = max(numberVals);
         tmpMin      = min(numberVals);
         
@@ -334,9 +421,13 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
         tmpRange    = tmpMax - tmpMin;
         tmpStep     = tmpInterval / tmpRange;
         
-        set(hSliderB,'Value',tmpMin,...
+        % set slider's values
+        set(hSliderB,...
+            'Value',tmpMin,...
             'Min',tmpMin,'Max',tmpMax,...
             'SliderStep',[tmpStep tmpStep]);
+        
+        % set labels accordingly
         set(hSliderBCategoryLabel,'String','Number');
         set(hSliderBValueLabel,'String',num2str(get(hSliderB,'Value')));
     end
@@ -348,68 +439,83 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
 % --------------------------------------------------------
     function drawGraph
         
-        % get numeric values for current fixed parameters
+        % get numeric values for current fixed parameters from sliders
         val1 = get(hSliderA,'Value');
         val2 = get(hSliderB,'Value');
+
+        % check fixed parameters and
+        % select appropriate column values accordingly
+        fixedVal = get(hFixedParametersPopUp,'Value');
         
-        valF = get(hFrequencyPopUp,'Value');
-        valA = get(hAmplitudePopUp,'Value');
-        
-        % check the set parameters
         col1 = 1;
         col2 = 1;
         
-        colF = 18;
-        colA = 19;
-        
-        colP = 18;
-        
-        
-        if get(hOptionsPopUp,'Value') == 1
-            col1 = 1; % pot column
-            col2 = 2; % br  column
+        switch fixedVal;
+            case 1
+                col1 = 1; % pot column
+                col2 = 2; % br  column
+            case 2
+                col1 = 1; % pot column
+                col2 = 3; % num column
+            case 3
+                col1 = 2; % br  column
+                col2 = 3; % num column
         end
-        if get(hOptionsPopUp,'Value') == 2
-            col1 = 1; % pot column
-            col2 = 3; % num column
-        end
-        if get(hOptionsPopUp,'Value') == 3
-            col1 = 2; % br  column
-            col2 = 3; % num column
-        end
+
         
-   
         % filter main array down depending on fixed values
         
-        widthAudioData = length(audioData(1,:));
-        tmpArray = zeros(1,widthAudioData);
-        totalRows = length(audioData);
+        % get dimensions of audioData array
+        totalColumns    = length(audioData(1,:));
+        totalRows       = length(audioData(:,1));
         
-        drivingSignalCheck = get(hDataSetPopUp,'Value');
+        % create 1-row array that we'll use for concatenating rows
+        % that fit our desired parameters
+        tmpArray = zeros(1,totalColumns);
+        
+        % check whether we have a driving signal or not
+        drivingSignalCheck = get(hSignalPopUp,'Value');
 
+        % sort through data
         for n=1:totalRows
-
+            
             tmpRow = audioData(n,:);
             
             if tmpRow(1,col1) == val1
                 if tmpRow(1,col2) == val2
                     
                     switch drivingSignalCheck;
+                        
                         case 1
                             % no driving signal, treat as silence data
                             potRange = get(hPotRangePopUp,'Value');
+                            colP = 18;
+                            
                             switch potRange;
+                                
                                 case 1
+                                    % pot range 1-121
                                     if tmpRow(1,colP) == 121
                                         tmpArray = cat(1,tmpArray,tmpRow);
                                     end
+                                    
                                 case 2
+                                    % pot range 1-9
                                     if tmpRow(1,colP) == 9
                                         tmpArray = cat(1,tmpArray,tmpRow);
                                     end
                             end
+                            
                         case 2
                             % driving signal
+                            
+                            valF = get(hFrequencyPopUp,'Value');
+                            valA = get(hAmplitudePopUp,'Value');
+                            colF = 18;
+                            colA = 19;
+                            
+                            % check frequency and amplitude columns
+                            % to see if they match our parameters
                             if tmpRow(1,colF) == frequencies(valF)
                                 if tmpRow(1,colA) == voltages(valA)
                                     tmpArray = cat(1,tmpArray,tmpRow);
@@ -425,11 +531,12 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
         % chop off top all-zeros row of tmpArray
         tmpArray = tmpArray(2:end,:);
         
-        arrLength = length(tmpArray(:,1));  % get # of rows in tmpArray
+        % get number of rows in resulting tmpArray
+        arrLength = length(tmpArray(:,1));
         
         % get column number of non-fixed variable
         % (math just happens to work out this way)
-        tmpColumn = 4 - get(hOptionsPopUp,'Value');
+        tmpColumn = 4 - get(hFixedParametersPopUp,'Value');
 
         cla reset   % clear plot and reset colors
         hold all    % allows adding multiple functions to plot in for loop
@@ -442,8 +549,8 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
         legendVals      = {0};
         xLabelString    = 'asdf';
         
+        % depending on display settings, set up plotting parameters
         test = get(hDataDisplayPopUp,'Value');
-
         switch(test);
             case 1
                 % set up bands as x-axis
@@ -461,7 +568,7 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
                 xLabelString = variableParameterName;
         end
 
-        % actually plot! 
+        % actually plot our data! 
         for n=1:forLimit
             
             % plot values
@@ -474,7 +581,7 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
         legend(legendInfo); % define legend
         legend('Location','NorthEastOutside');
         
-        xlabel(xLabelString);
+        xlabel(xLabelString);   % set x label
         
         ylim([0 yAxisHeight]);  % set y limits
         
@@ -512,11 +619,12 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
 
 
 % --------------------------------------------------------
-% Data Set Callback
+% Signal callback.
 %   Changes general audio data set depending on user choice.
+%   Shows/hides appropriate popup menus.
 % --------------------------------------------------------
 
-    function dataSetCallback(source,~)
+    function signalCallback(source,~)
         str = get(source, 'String');
         val = get(source,'Value');
         
@@ -566,74 +674,7 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
     end
 
 
-%     function setUpAllPotNoSignal
-%         audioData = csvread('potNumBrightnessTesting1.csv');
-%         potVals = 1:8:121;
-%         resetAllData;
-%     end
-% 
-%     function setUpLowPotNoSignal
-%         audioData = csvread('pot1to9.csv');
-%         potVals = 1:9;
-%         resetAllData;
-%     end
-% 
-%     function setUpAllPot63HzSignal2V
-%         audioData = csvread('allPot63.csv');
-%         potVals = 1:8:121;
-%         resetAllData;
-%     end
-% 
-%     function setUpAllPot63HzSignal1V
-%         audioData = csvread('allPot63Low.csv');
-%         potVals = 1:8:121;
-%         resetAllData;
-%     end
-% 
-%     function setUpAllPot160HzSignal2V
-%         audioData = csvread('allPot160.csv');
-%         potVals = 1:8:121;
-%         resetAllData;
-%     end
-% 
-%     function setUpAllPot160HzSignal1V
-%         audioData = csvread('allPot160Low.csv');
-%         potVals = 1:8:121;
-%         resetAllData;
-%     end
-% 
-%     function setUpAllPot63HzSignal200mV
-%         audioData = csvread('allPot63Hz200mV.csv');
-%         potVals = 1:8:121;
-%         resetAllData;
-%     end
-% 
-%     function setUpAllPot160HzSignal200mV
-%         audioData = csvread('allPot160Hz200mV.csv');
-%         potVals = 1:8:121;
-%         resetAllData;
-%     end
 
-% --------------------------------------------------------
-% Reset all data.
-%   Changes sliders and graphs depending on current
-%   value of main fixed-parameter selection popup.
-% --------------------------------------------------------
-    function resetAllData
-        
-        str = get(hOptionsPopUp, 'String');
-        val = get(hOptionsPopUp,'Value');
-        
-        switch str{val};
-            case 'Pot / Brightness'
-                potBrCallback;
-            case 'Pot / Number'
-                potNumCallback;
-            case 'Brightness / Number'
-                brNumCallback;
-        end
-        
-    end
 
 % --------------------------------------------------------
 % Create huge audio array.
@@ -643,30 +684,33 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
 
     function createDrivingSignalsArray
         
-        f63Hz2V     = csvread('allPot63.csv');
-        f63Hz1V     = csvread('allPot63Low.csv');
-        f63Hz200mV  = csvread('allPot63Hz200mV.csv');
+        % read in all separate audio data files
         
-        f160Hz2V     = csvread('allPot160.csv');
-        f160Hz1V     = csvread('allPot160Low.csv');
-        f160Hz200mV  = csvread('allPot160Hz200mV.csv');
+        f63Hz2V         = csvread('allPot63.csv');
+        f63Hz1V         = csvread('allPot63Low.csv');
+        f63Hz200mV      = csvread('allPot63Hz200mV.csv');
         
-        f400Hz2V     = csvread('allPot400.csv');
-        f400Hz1V     = csvread('allPot400Low.csv');
-        f400Hz200mV  = csvread('allPot400Hz200mV.csv');
+        f160Hz2V        = csvread('allPot160.csv');
+        f160Hz1V        = csvread('allPot160Low.csv');
+        f160Hz200mV     = csvread('allPot160Hz200mV.csv');
         
-        f1kHz2V     = csvread('allPot1k.csv');
-        f1kHz1V     = csvread('allPot1kLow.csv');
-        f1kHz200mV  = csvread('allPot1kHz200mV.csv');
+        f400Hz2V        = csvread('allPot400.csv');
+        f400Hz1V        = csvread('allPot400Low.csv');
+        f400Hz200mV     = csvread('allPot400Hz200mV.csv');
         
-        f2500Hz2V     = csvread('allPot2500.csv');
-        f2500Hz1V     = csvread('allPot2500Low.csv');
-        f2500Hz200mV  = csvread('allPot2500Hz200mV.csv');
+        f1kHz2V         = csvread('allPot1k.csv');
+        f1kHz1V         = csvread('allPot1kLow.csv');
+        f1kHz200mV      = csvread('allPot1kHz200mV.csv');
         
-        f6250Hz2V     = csvread('allPot6250.csv');
-        f6250Hz1V     = csvread('allPot6250Low.csv');
-        f6250Hz200mV  = csvread('allPot6250Hz200mV.csv');
+        f2500Hz2V       = csvread('allPot2500.csv');
+        f2500Hz1V       = csvread('allPot2500Low.csv');
+        f2500Hz200mV    = csvread('allPot2500Hz200mV.csv');
         
+        f6250Hz2V       = csvread('allPot6250.csv');
+        f6250Hz1V       = csvread('allPot6250Low.csv');
+        f6250Hz200mV    = csvread('allPot6250Hz200mV.csv');
+        
+        % concatenate them all
         audioData = cat(1,...
             f63Hz2V,f63Hz1V,f63Hz200mV,...
             f160Hz2V,f160Hz1V,f160Hz200mV,...
@@ -675,7 +719,7 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
             f2500Hz2V,f2500Hz1V,f2500Hz200mV,...
             f6250Hz2V,f6250Hz1V,f6250Hz200mV);
     
-        
+        % add in frequency and amplitude values to last columns
         for band = 1:6
             for amp = 1:3
                 for r = 1:400
@@ -691,16 +735,24 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
        
     end
 
+% --------------------------------------------------------
+% Create silence array.
+%   creates audio array of all silence files.
+% --------------------------------------------------------
+
     function createSilenceAudioArray
         
+        % read in silence data files
         allPot = csvread('potNumBrightnessTesting1.csv');
         lowPot = csvread('pot1to9.csv');
         
+        % set value of last column equal to max pot value
         for n=1:400
             allPot(n,18) = 121;
             lowPot(n,18) = 9;
         end
         
+        % set audioData by concatenating arrays
         audioData = cat(1,allPot,lowPot);
     end
 
@@ -709,6 +761,11 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
     function frequencyCallback(~,~)
         drawGraph;
     end
+
+% --------------------------------------------------------
+% Pot range callback.
+%   changes pot range depending on popup value.
+% --------------------------------------------------------
 
     function potRangeCallback(source,~)
         str = get(source, 'String');

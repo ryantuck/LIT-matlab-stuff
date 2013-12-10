@@ -32,6 +32,8 @@ dataSets = {'1-121 (no driver)',...
     '1-121 (160 Hz) 2V',...
     '1-121 (160 Hz) 1V'};
 
+yAxisHeight = 1000;
+
 % create and then hide the GUI as it is being constructed
 f = figure('Visible','off','Position',[360,500,450,285]);
 
@@ -89,6 +91,14 @@ hDataSetPopUp = uicontrol('Style','popupmenu',...
     'String',dataSets,...
     'Position',[480 480 200 20],...
     'Callback',@dataSetCallback);
+
+% y axis height popup
+%   allows user to define y axis height
+hYAxisPopUp = uicontrol('Style','popupmenu',...
+    'String',{'200','400','600','800','1000'},...
+    'Value',5,... % sets default to 1000
+    'Position',[480 380 100 20],...
+    'Callback',@yAxisCallback);
 
 % ================================================================
 % Prepare display
@@ -343,9 +353,26 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
         legend(legendInfo); % define legend
         legend('Location','NorthEastOutside');
         
-        ylim([0 300]);  % set y limits
+        ylim([0 yAxisHeight]);  % set y limits
         
     end
+
+% --------------------------------------------------------
+% Y axis callback
+%   Changes y-axis height on graph.
+% --------------------------------------------------------
+
+    function yAxisCallback(source,eventdata)
+        str = get(source,'String');
+        val = get(source,'Value');
+        
+        % sets y-axis height to literal value from popup
+        yAxisHeight = str2num(str{val});
+        
+        %re-draws graph
+        drawGraph;
+    end
+
 
 % --------------------------------------------------------
 % Data Set Callback
@@ -418,8 +445,6 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
 %   Changes sliders and graphs depending on current
 %   value of main fixed-parameter selection popup.
 % --------------------------------------------------------
-
-
     function resetAllData
         
         str = get(hOptionsPopUp, 'String');
@@ -438,7 +463,6 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
 
 
 end
-
 
 
 

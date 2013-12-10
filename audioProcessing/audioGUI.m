@@ -388,13 +388,13 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
                 setUpAllPotNoSignal;
             case '1-9 (no driver)'
                 setUpLowPotNoSignal;
-            case '1-121 (63 Hz) 4V'
-                setUpAllPot63HzSignal4V;
             case '1-121 (63 Hz) 2V'
+                setUpAllPot63HzSignal4V;
+            case '1-121 (63 Hz) 1V'
                 setUpAllPot63HzSignal2V;
-            case '1-121 (160 Hz) 4V'
-                setUpAllPot160HzSignal4V;
             case '1-121 (160 Hz) 2V'
+                setUpAllPot160HzSignal4V;
+            case '1-121 (160 Hz) 1V'
                 setUpAllPot160HzSignal2V;
         end
     end
@@ -423,7 +423,7 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
     end
 
     function setUpAllPot63HzSignal2V
-        audioData = csvread('allPot63Hz200mV.csv');
+        audioData = csvread('allPot63Low.csv');
         potVals = 1:8:121;
         resetAllData;
     end

@@ -34,6 +34,10 @@ dataSets = {'1-121 (no driver)',...
     '1-121 (160 Hz) 1V',...
     '1-121 (160 Hz) 200mV'};
 
+displayOptions = {'spectrum','variable'};
+
+variableParameterName = 'Number';
+
 yAxisHeight = 1000;
 
 % create and then hide the GUI as it is being constructed
@@ -333,27 +337,55 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
         tmpArray = tmpArray([2:end],:);
         
         arrLength = length(tmpArray(:,1));  % get # of rows in tmpArray
+        
+        % get column number of non-fixed variable
+        % (math just happens to work out this way)
+        tmpColumn = 4 - get(hOptionsPopUp,'Value');
 
         cla reset   % clear plot and reset colors
         hold all    % allows adding multiple functions to plot in for loop
         legendInfo = {0};   % set up legend
         
+        % create values to adjust depending on data to display
+        forLimit        = 1;
+        xVals           = {0};
+        yVals           = {0};
+        legendVals      = {0};
+        xLabelString    = 'asdf';
+        
+        test = get(hDataDisplayPopUp,'Value');
+
+        switch(test);
+            case 1
+                % set up bands as x-axis
+                forLimit = arrLength;
+                xVals = bands;
+                yVals = tmpArray(:,4:10);
+                legendVals = tmpArray(:,tmpColumn);
+                xLabelString = 'Band';
+            case 2
+                % set up non-fixed variable as x-axis
+                forLimit = 7;
+                xVals = transpose(tmpArray(:,tmpColumn));
+                yVals = transpose(tmpArray(:,4:10));
+                legendVals = bands;
+                xLabelString = variableParameterName;
+        end
+
         % actually plot! 
-        for n=1:arrLength
+        for n=1:forLimit
             
-            % plot 7 band values for a given non-fixed value
-            plot(bands,tmpArray(n,4:10),'-s');
+            % plot values
+            plot(xVals,yVals(n,:),'-s');
             
-            % get column number of non-fixed variable
-            % (math just happens to work out this way)
-            tmpVal = 4 - get(hOptionsPopUp,'Value');
-            
-            % add a legend indicator for this certain non-fixed value
-            legendInfo{n} = num2str(tmpArray(n,tmpVal));
+            % add legend entry
+            legendInfo{n} = num2str(legendVals(n));
         end
         
         legend(legendInfo); % define legend
         legend('Location','NorthEastOutside');
+        
+        xlabel(xLabelString);
         
         ylim([0 yAxisHeight]);  % set y limits
         
@@ -372,6 +404,20 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
         yAxisHeight = str2num(str{val});
         
         %re-draws graph
+        drawGraph;
+    end
+
+% --------------------------------------------------------
+% Display options callback
+%   Changes x-axis values between variable parameter and
+%   the different spectrum bands.
+% --------------------------------------------------------
+
+    function displayOptionsCallback(source,eventdata)
+        
+        % since drawGraph queries this popup's value, 
+        % we don't really need to do anything except
+        % re-draw the graph.
         drawGraph;
     end
 

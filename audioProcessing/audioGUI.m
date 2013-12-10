@@ -25,6 +25,13 @@ potVals         = 1:8:121;
 brightnessVals  = 0:25:100;
 numberVals      = 0:8:32;
 
+dataSets = {'1-121 (no driver)',...
+    '1-9 (no driver)',...
+    '1-121 (63 Hz) 2V',...
+    '1-121 (63 Hz) 1V',...
+    '1-121 (160 Hz) 2V',...
+    '1-121 (160 Hz) 1V'};
+
 % create and then hide the GUI as it is being constructed
 f = figure('Visible','off','Position',[360,500,450,285]);
 
@@ -85,8 +92,8 @@ hSliderBValueLabel = uicontrol('Style','text',...
 % data choice popup
 %   allows user to select either low pot or full range data
 hDataSetPopUp = uicontrol('Style','popupmenu',...
-    'String',{'1-121','1-9','1-121 (63 Hz)'},...
-    'Position',[480 480 100 20],...
+    'String',dataSets,...
+    'Position',[480 480 200 20],...
     'Callback',@dataSetCallback);
 
 % ================================================================
@@ -356,12 +363,18 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
         val = get(source,'Value');
         
         switch str{val};
-            case '1-121'
+            case '1-121 (no driver)'
                 setUpAllPotNoSignal;
-            case '1-9'
+            case '1-9 (no driver)'
                 setUpLowPotNoSignal;
-            case '1-121 (63 Hz)'
-                setUpAllPot63HzSignal;
+            case '1-121 (63 Hz) 4V'
+                setUpAllPot63HzSignal4V;
+            case '1-121 (63 Hz) 2V'
+                setUpAllPot63HzSignal2V;
+            case '1-121 (160 Hz) 4V'
+                setUpAllPot160HzSignal4V;
+            case '1-121 (160 Hz) 2V'
+                setUpAllPot160HzSignal2V;
         end
     end
 
@@ -382,8 +395,26 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
         resetAllData;
     end
 
-    function setUpAllPot63HzSignal
+    function setUpAllPot63HzSignal4V
         audioData = csvread('allPot63.csv');
+        potVals = 1:8:121;
+        resetAllData;
+    end
+
+    function setUpAllPot63HzSignal2V
+        audioData = csvread('allPot63Hz200mV.csv');
+        potVals = 1:8:121;
+        resetAllData;
+    end
+
+    function setUpAllPot160HzSignal4V
+        audioData = csvread('allPot160.csv');
+        potVals = 1:8:121;
+        resetAllData;
+    end
+
+    function setUpAllPot160HzSignal2V
+        audioData = csvread('allPot160Low.csv');
         potVals = 1:8:121;
         resetAllData;
     end

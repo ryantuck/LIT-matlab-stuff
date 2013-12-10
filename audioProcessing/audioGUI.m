@@ -29,8 +29,10 @@ dataSets = {'1-121 (no driver)',...
     '1-9 (no driver)',...
     '1-121 (63 Hz) 2V',...
     '1-121 (63 Hz) 1V',...
+    '1-121 (63 Hz) 200mV',...
     '1-121 (160 Hz) 2V',...
-    '1-121 (160 Hz) 1V'};
+    '1-121 (160 Hz) 1V',...
+    '1-121 (160 Hz) 200mV'};
 
 yAxisHeight = 1000;
 
@@ -389,13 +391,17 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
             case '1-9 (no driver)'
                 setUpLowPotNoSignal;
             case '1-121 (63 Hz) 2V'
-                setUpAllPot63HzSignal4V;
-            case '1-121 (63 Hz) 1V'
                 setUpAllPot63HzSignal2V;
+            case '1-121 (63 Hz) 1V'
+                setUpAllPot63HzSignal1V;
             case '1-121 (160 Hz) 2V'
-                setUpAllPot160HzSignal4V;
-            case '1-121 (160 Hz) 1V'
                 setUpAllPot160HzSignal2V;
+            case '1-121 (160 Hz) 1V'
+                setUpAllPot160HzSignal1V;
+            case '1-121 (63 Hz) 200mV'
+                setUpAllPot63HzSignal200mV;
+            case '1-121 (160 Hz) 200mV'
+                setUpAllPot160HzSignal200mV;
         end
     end
 
@@ -416,26 +422,38 @@ set(f,'Visible','on','Position',[100 100 1000 600]);
         resetAllData;
     end
 
-    function setUpAllPot63HzSignal4V
+    function setUpAllPot63HzSignal2V
         audioData = csvread('allPot63.csv');
         potVals = 1:8:121;
         resetAllData;
     end
 
-    function setUpAllPot63HzSignal2V
+    function setUpAllPot63HzSignal1V
         audioData = csvread('allPot63Low.csv');
         potVals = 1:8:121;
         resetAllData;
     end
 
-    function setUpAllPot160HzSignal4V
+    function setUpAllPot160HzSignal2V
         audioData = csvread('allPot160.csv');
         potVals = 1:8:121;
         resetAllData;
     end
 
-    function setUpAllPot160HzSignal2V
+    function setUpAllPot160HzSignal1V
         audioData = csvread('allPot160Low.csv');
+        potVals = 1:8:121;
+        resetAllData;
+    end
+
+    function setUpAllPot63HzSignal200mV
+        audioData = csvread('allPot63Hz200mV.csv');
+        potVals = 1:8:121;
+        resetAllData;
+    end
+
+    function setUpAllPot160HzSignal200mV
+        audioData = csvread('allPot160Hz200mV.csv');
         potVals = 1:8:121;
         resetAllData;
     end

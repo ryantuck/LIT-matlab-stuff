@@ -12,6 +12,7 @@ f = figure('Visible','off','Position',[360,500,450,285]);
 % initialize values we'll need
 currentData = 0;
 bands = 0:6;
+numDataPoints = 120;
 
 % various data sets to choose from
 dataSets = {...
@@ -19,7 +20,29 @@ dataSets = {...
     'tap',...
     'thats all',...
     'lift off',...
-    'bombo tiempo'};
+    'bombo tiempo',...
+    'the motto'};
+
+dataSets60 = {...
+    'rock n roll',...
+    'wild for the night',...
+    'late night hour',...
+    'breakin a sweat',...
+    'one',...
+    'louder than boom',...
+    'bonfire'};
+
+dataSets120 = {...
+    'ratTrapHigh120',...
+    'ratTrapLow120',...
+    'freakyGirl120',...
+    'cascade120-1',...
+    'cascade120-2',...
+    'epic120',...
+    'epic120-drop',...
+    'silence120',...
+    'serialWriting120',...
+    'serialMinusSilence'};
 
 % ========================================================
 % UI objects
@@ -27,7 +50,7 @@ dataSets = {...
 
 hDataSetPopUp = uicontrol(...
     'Style','popupmenu',...
-    'String',dataSets,...
+    'String',dataSets120,...
     'Position',[20 600 200 20],...
     'Callback',@dataSetCallback);
 
@@ -40,9 +63,9 @@ hRunButton = uicontrol(...
 hFrameSlider = uicontrol(...
     'Style','slider',...
     'Position',[20 520 200 20],...
-    'Min',1,'Max',30,...
+    'Min',1,'Max',numDataPoints,...
     'Value',1,...
-    'Sliderstep',[1/29 1/29],...
+    'Sliderstep',[1/(numDataPoints-1) 1/(numDataPoints-1)],...
     'Callback',@frameSliderCallback);
 
 hFrameSliderLabel = uicontrol(...
@@ -57,7 +80,7 @@ hFrameSliderLabel = uicontrol(...
 % set shit up
 axes('Units','Pixels','Position',[50 50 800 400]);
 set(f,'Visible','on','Position',[100 100 1000 800]);
-setCurrentData;
+setCurrent120Data;
 
 % ========================================================
 
@@ -73,7 +96,7 @@ setCurrentData;
     
     function dataSetCallback(~,~)
         
-        setCurrentData;
+        setCurrent120Data;
         
     end
 
@@ -96,7 +119,60 @@ setCurrentData;
                 currentData = csvread('beatSamples/liftOff1.csv');
             case 'bombo tiempo'
                 currentData = csvread('beatSamples/bomboTiempo1.csv');
+            case 'the motto'
+                currentData = csvread('beatSamples/theMotto1.csv');
         end
+        
+        drawGraph(1);
+    end
+
+% ========================================================
+
+% changes currentData array based on user selection in popup menu
+
+    function setCurrent60Data
+        str = get(hDataSetPopUp,'String');
+        val = get(hDataSetPopUp,'Value');
+        
+        switch str{val};
+            case 'rock n roll'
+                currentData = csvread('beatSamples/rockNRoll60.csv');
+            case 'wild for the night'
+                currentData = csvread('beatSamples/wildForTheNight60.csv');
+            case 'late night hour'
+                currentData = csvread('beatSamples/lateNightHour60.csv');
+            case 'breakin a sweat'
+                currentData = csvread('beatSamples/breakinASweat60.csv');
+            case 'one'
+                currentData = csvread('beatSamples/oneSHM60.csv');
+            case 'louder than boom'
+                currentData = csvread('beatSamples/louderThanBoom60.csv');
+            case 'bonfire'
+                currentData = csvread('beatSamples/bonfire60.csv');
+        end
+        
+        drawGraph(1);
+    end
+
+% ========================================================
+
+% changes currentData array based on user selection in popup menu
+
+    function setCurrent120Data
+        str = get(hDataSetPopUp,'String');
+        val = get(hDataSetPopUp,'Value');
+        
+        fileName = strcat('beatSamples/',str{val},'.csv');
+        
+        currentData = csvread(fileName);
+        
+%         switch str{val};
+%             case 'rat trap high'
+%                 currentData = csvread('beatSamples/ratTrapHigh120.csv');
+%             case 'rat trap low'
+%                 currentData = csvread('beatSamples/ratTrapLow120.csv');
+%                 
+%         end
         
         drawGraph(1);
     end
@@ -109,7 +185,7 @@ setCurrentData;
         
         plot(bands,currentData(aRow,1:7),'-s');
         
-        ylim([0 1000]);
+        ylim([0 100]);
         
     end
 
@@ -119,9 +195,9 @@ setCurrentData;
 
     function runThroughData(~,~)
         
-        for n=1:30
+        for n=1:numDataPoints
             drawGraph(n);
-            pause(0.05);
+            pause(0.02);
         end
     end
 

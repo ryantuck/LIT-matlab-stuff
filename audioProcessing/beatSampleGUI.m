@@ -42,7 +42,11 @@ dataSets120 = {...
     'epic120-drop',...
     'silence120',...
     'serialWriting120',...
-    'serialMinusSilence'};
+    'serialMinusSilence',...
+    'unison100',...
+    'unison100-2',...
+    'blessed100',...
+    'blessed100-2'};
 
 % ========================================================
 % UI objects
@@ -151,6 +155,7 @@ setCurrent120Data;
                 currentData = csvread('beatSamples/bonfire60.csv');
         end
         
+        
         drawGraph(1);
     end
 
@@ -165,14 +170,16 @@ setCurrent120Data;
         fileName = strcat('beatSamples/',str{val},'.csv');
         
         currentData = csvread(fileName);
-        
-%         switch str{val};
-%             case 'rat trap high'
-%                 currentData = csvread('beatSamples/ratTrapHigh120.csv');
-%             case 'rat trap low'
-%                 currentData = csvread('beatSamples/ratTrapLow120.csv');
-%                 
-%         end
+
+        if length(currentData) < 120
+            
+            diff = 120 - length(currentData);
+            
+            tmpArray = zeros(diff,8);
+            
+            currentData = cat(1,currentData,tmpArray);
+            
+        end
         
         drawGraph(1);
     end

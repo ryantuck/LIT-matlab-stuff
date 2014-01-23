@@ -54,6 +54,10 @@ yHeights = {...
     '800',...
     '1000'};
 
+yHeightsForStdev = {'20','50','100'};
+
+meanOrStdev = {'mean','stdev'};
+
 % options for pot range
 potRangeOptions = {'1-121','1-9'};
 
@@ -102,7 +106,7 @@ hSignalPopUp = uicontrol(...
 
 % y axis height popup
 %   allows user to define y axis height
-uicontrol(...
+hYAxisPopUp = uicontrol(...
     'Style','popupmenu',...
     'String',yHeights,...
     'Value',5,... % sets default to 1000
@@ -128,7 +132,7 @@ hFrequencyPopUp = uicontrol(...
 hAmplitudePopUp = uicontrol(...
     'Style','popupmenu',...
     'String',voltages,...
-    'Position',[680 560 200 20],...
+    'Position',[680 640 200 20],...
     'Callback',@frequencyCallback);
 
 % pot range popup
@@ -138,6 +142,14 @@ hPotRangePopUp = uicontrol(...
     'String',potRangeOptions,...
     'Position',[680 600 200 20],...
     'Callback',@potRangeCallback);
+
+% data type pop-up
+%   decide whether mean or stdev is displayed
+hMeanOrStdevPopup = uicontrol(...
+    'Style','popupmenu',...
+    'String',meanOrStdev,...
+    'Position',[680 560 200 20],...
+    'Callback',@meanOrStdevCallback);
 
 % labels
 uicontrol(...   % fixed parameters label
@@ -158,7 +170,7 @@ hFrequencyLabel = uicontrol(...
 hAmplitudeLabel = uicontrol(...
     'Style','text',...
     'String','Signal Amplitude (mV):',...
-    'Position',[480 560 200 20]);
+    'Position',[480 640 200 20]);
 
 uicontrol(...   % driving signal label
     'Style','text',...        
@@ -174,6 +186,11 @@ uicontrol(...   % x-axis label
     'Style','text',...        
     'String','X-Axis Data:',...
     'Position',[480 480 200 20]);
+
+uicontrol(...   % mean/stdev label
+    'Style','text',...
+    'String','Mean/Stdev',...
+    'Position',[480 560 200 20]);
 
 % slider category labels
 %   display parameter name associated with slider
@@ -551,19 +568,31 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
         
         % depending on display settings, set up plotting parameters
         test = get(hDataDisplayPopUp,'Value');
+        msTest = get(hMeanOrStdevPopup,'Value');
+        r1 = 4;
+        r2 = 10;
+        switch (msTest);
+            case 1
+                r1 = 4;
+                r2 = 10;
+            case 2
+                r1 = 11;
+                r2 = 17;
+        end
+        
         switch(test);
             case 1
                 % set up bands as x-axis
                 forLimit = arrLength;
-                xVals = bands;
-                yVals = tmpArray(:,4:10);
+                xVals = bands;       
+                yVals = tmpArray(:,r1:r2);
                 legendVals = tmpArray(:,tmpColumn);
                 xLabelString = 'Band';
             case 2
                 % set up non-fixed variable as x-axis
                 forLimit = 7;
                 xVals = transpose(tmpArray(:,tmpColumn));
-                yVals = transpose(tmpArray(:,4:10));
+                yVals = transpose(tmpArray(:,r1:r2));
                 legendVals = bands;
                 xLabelString = variableParameterName;
         end
@@ -641,6 +670,41 @@ set(f,'Visible','on','Position',[100 100 1000 800]);
                 drawGraph;
         end
     end
+
+
+% --------------------------------------------------------
+% Mean/Stdev callback.
+%   Changes whether mean or stdev values are displayed.
+% --------------------------------------------------------
+
+    function meanOrStdevCallback(source,~)
+        str = get(source,'String');
+        val = get(source,'Value');
+        
+        switch str{val};
+            case 'mean'
+                % adjust y popup accordingly
+                set(hYAxisPopUp,...
+                    'Value',1,...
+                    'String',yHeights);
+                yVal = get(hYAxisPopUp,'Value');
+                yStr = get(hYAxisPopUp,'String');
+                yAxisHeight = str2double(yStr{yVal});
+                % re-draw graph
+                drawGraph;
+            case 'stdev'
+                % adjust y popup accordingly
+                set(hYAxisPopUp,...
+                    'Value',1,...
+                    'String',yHeightsForStdev);
+                yVal = get(hYAxisPopUp,'Value');
+                yStr = get(hYAxisPopUp,'String');
+                yAxisHeight = str2double(yStr{yVal});
+                % re-draw graph
+                drawGraph;
+        end
+    end
+
 
 % --------------------------------------------------------
 % Data set setups.
